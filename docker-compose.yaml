@@ -1,0 +1,62 @@
+services:
+  bitespeed-fluxkart:
+    image: bitespeed/fluxkart:latest
+    container_name: fluxkart
+    environment:
+      - PORT=${AGENT_PORT}
+      - REDIS_URL=${REDIS_URL}
+      - REDIS_TIMEOUT=${REDIS_TIMEOUT}
+      - TYPEORM_HOST=${STUDIO_TYPEORM_HOST}
+      - TYPEORM_PORT=${TYPEORM_PORT}
+      - TYPEORM_USERNAME=${STUDIO_TYPEORM_USERNAME}
+      - TYPEORM_PASSWORD=${STUDIO_TYPEORM_PASSWORD}
+      - TYPEORM_DATABASE=${STUDIO_TYPEORM_DATABASE}
+      - TYPEORM_AUTO_SCHEMA_SYNC=${STUDIO_TYPEORM_AUTO_SCHEMA_SYNC}
+      - TYPEORM_ENTITIES=${STUDIO_TYPEORM_ENTITIES}
+      - TYPEORM_SUBSCRIBERS=${STUDIO_TYPEORM_SUBSCRIBERS}
+      - TYPEORM_MIGRATIONS=${STUDIO_TYPEORM_MIGRATIONS}
+      - TYPEORM_ENTITIES_DIR=${STUDIO_TYPEORM_ENTITIES_DIR}
+      - TYPEORM_MIGRATIONS_DIR=${STUDIO_TYPEORM_MIGRATIONS_DIR}
+      - TYPEORM_SUBSCRIBERS_DIR=${STUDIO_TYPEORM_SUBSCRIBERS_DIR}
+      - TYPEORM_LOGGING=${STUDIO_TYPEORM_LOGGING}
+    ports:
+      - ${AGENT_PORT}:${AGENT_PORT}
+    depends_on:
+      - postgres52
+      - redis
+    networks:
+      - local
+    command: node dist/index.js
+
+  postgres52:
+    image: postgres:16-alpine
+    container_name: postgres52
+    environment:
+      POSTGRES_USER: ${STUDIO_TYPEORM_USERNAME}
+      POSTGRES_PASSWORD: ${STUDIO_TYPEORM_PASSWORD}
+      POSTGRES_DB: ${STUDIO_TYPEORM_DATABASE}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - ${STUDIO_TYPEORM_PORT}:${TYPEORM_PORT}
+    restart: always
+    volumes:
+      - postgres-data52:/var/lib/postgresql/data
+    networks:
+      - local
+
+  redis:
+    image: redis:latest
+    container_name: redis_bitespeed
+    ports:
+      - '6479:6479'
+    restart: always
+    networks:
+      - local
+
+volumes:
+  postgres-data52:
+    name: postgres-data52
+
+networks:
+  local:
+    name: local
